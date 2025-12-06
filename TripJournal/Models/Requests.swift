@@ -29,9 +29,7 @@ struct TripUpdate: Encodable {
 /// An object that can be used to create a media.
 struct MediaCreate: Encodable {
     let eventId: Event.ID
-    // If the backend expects base64 string, store as String; if raw Data is acceptable and encoder handles it, keep Data.
-    // We'll encode as base64 string explicitly to be safe.
-    let base64Data: String
+    let base64Data: Data
 
     enum CodingKeys: String, CodingKey {
         case eventId = "event_id"

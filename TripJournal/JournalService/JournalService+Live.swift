@@ -150,14 +150,7 @@ class JournalServiceLive: JournalService {
         urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
         urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
         
-        let encoder = JSONEncoder()
-        if #available(iOS 15.0, macOS 12.0, *) {
-            encoder.dateEncodingStrategy = .iso8601WithFractionalSeconds
-        } else {
-            // Fallback: standard ISO8601 (may omit fractional seconds)
-            encoder.dateEncodingStrategy = .iso8601
-        }
-        urlRequest.httpBody = try encoder.encode(request)
+        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
         
         do {
             let (data, response) = try await session.data(for: urlRequest)
@@ -165,7 +158,7 @@ class JournalServiceLive: JournalService {
                 throw NetworkError.badResponse
             }
             do {
-                let trip = try JSONDecoder().decode(Trip.self, from: data)
+                let trip = try NetworkCoding.decoder.decode(Trip.self, from: data)
                 return trip
             } catch {
                 throw NetworkError.failedToDecodeResponse
@@ -567,8 +560,12 @@ enum NetworkCoding {
     
     static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601 // or a server-agreed strategy
-        // decoder.keyDecodingStrategy = .convertFromSnakeCase
+        if #available(iOS 15.0, macOS 12.0, *) {
+            decoder.dateDecodingStrategy = .iso8601WithFractionalSeconds
+        } else {
+            decoder.dateDecodingStrategy = .iso8601
+        }
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         return decoder
     }()
 }
@@ -586,6 +583,27 @@ private extension JSONEncoder.DateEncodingStrategy {
             formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             let string = formatter.string(from: date)
             try container.encode(string)
+        }
+    }
+}
+
+private extension JSONDecoder.DateDecodingStrategy {
+    static var iso8601WithFractionalSeconds: JSONDecoder.DateDecodingStrategy {
+        return .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let string = try container.decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: string) {
+                return date
+            }
+            // Fallback: try without fractional seconds
+            formatter.formatOptions = [.withInternetDateTime]
+            if let date = formatter.date(from: string) {
+                return date
+            }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid ISO8601 date: \(string)")
         }
     }
 }
