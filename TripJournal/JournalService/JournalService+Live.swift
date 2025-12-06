@@ -319,18 +319,36 @@ class JournalServiceLive: JournalService {
     /// - Returns: Created event.
     @discardableResult
     func createEvent(with request: EventCreate) async throws -> Event {
-        //        try await Task.sleep(for: .seconds(delay))
-        //        guard let tripIndex = trips.firstIndex(where: { $0.id == request.tripId }) else {
-        //            throw NetworkError.failedCreateEvent
-        //        }
-        //        var events = trips[tripIndex].events
-        //        let newEvent = Event(from: request)
-        //        events.append(newEvent)
-        //        trips[tripIndex].events = events
-        //        trips[tripIndex].events.sort()
-        //        return newEvent
-        throw NetworkError.failedUpdateEvent
+        guard let url = EndPoints.events.url else {
+            throw NetworkError.badUrl
+        }
         
+        guard let accessToken = token?.accessToken else {
+            throw NetworkError.badAccessToken
+        }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = HTTPMethods.POST.rawValue
+        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
+        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+        
+        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
+                
+        do {
+            let (data, responce) = try await session.data(for: urlRequest)
+            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+                throw NetworkError.badResponse
+            }
+            do {
+                let event = try NetworkCoding.decoder.decode(Event.self, from: data)
+                return event
+            } catch {
+                throw NetworkError.failedToDecodeResponse
+            }
+        } catch {
+            throw NetworkError.failedCreateEvent
+        }
     }
     
     //=================================================================================
@@ -339,29 +357,64 @@ class JournalServiceLive: JournalService {
     /// - Returns: Updated event.
     @discardableResult
     func updateEvent(withId eventId: Event.ID, and request: EventUpdate) async throws -> Event {
-        //        try await Task.sleep(for: .seconds(delay))
-        //        for tripIndex in trips.indices {
-        //            for (eventIndex, event) in trips[tripIndex].events.enumerated() where event.id == eventId {
-        //                trips[tripIndex].events[eventIndex].update(from: request)
-        //                trips[tripIndex].events.sort()
-        //                return trips[tripIndex].events[eventIndex]
-        //            }
-        //        }
-        throw NetworkError.failedUpdateEvent
+        guard let url = EndPoints.event(id: eventId) else {
+            throw NetworkError.badUrl
+        }
+        
+        guard let accessToken = token?.accessToken else {
+            throw NetworkError.badAccessToken
+        }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = HTTPMethods.PUT.rawValue
+        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
+        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+        
+        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
+        
+        do {
+            let (data, responce) = try await session.data(for: urlRequest)
+            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+                throw NetworkError.badResponse
+            }
+            do {
+                let event = try NetworkCoding.decoder.decode(Event.self, from: data)
+                return event
+            } catch {
+                throw NetworkError.failedToDecodeResponse
+            }
+        } catch {
+            throw NetworkError.failedUpdateEvent
+        }
+        
     }
     
     //=================================================================================
     /// Delete an event with a given id.
     /// - Parameter eventId: Event id.
     func deleteEvent(withId eventId: Event.ID) async throws {
-        //        try await Task.sleep(for: .seconds(delay))
-        //        for tripIndex in trips.indices {
-        //            for (eventIndex, event) in trips[tripIndex].events.enumerated() where event.id == eventId {
-        //                trips[tripIndex].events.remove(at: eventIndex)
-        //                return
-        //            }
-        //        }
-        throw NetworkError.failedDeleteEvent
+        guard let url = EndPoints.event(id: eventId) else {
+            throw NetworkError.badUrl
+        }
+        
+        guard let accessToken = token?.accessToken else {
+            throw NetworkError.badAccessToken
+        }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = HTTPMethods.DELETE.rawValue
+        urlRequest.addValue("*/*", forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+                
+        do {
+            let (_, responce) = try await session.data(for: urlRequest)
+            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+                throw NetworkError.badResponse
+            }
+        } catch {
+            throw NetworkError.failedDeleteTrip
+        }
     }
     
     //=================================================================================
@@ -370,31 +423,63 @@ class JournalServiceLive: JournalService {
     /// - Returns: Created media.
     @discardableResult
     func createMedia(with request: MediaCreate) async throws -> Media {
-        //        try await Task.sleep(for: .seconds(delay))
-        //        for tripIndex in trips.indices {
-        //            for (eventIndex, event) in trips[tripIndex].events.enumerated() where event.id == request.eventId {
-        //                let newMedia = Media(from: request)
-        //                trips[tripIndex].events[eventIndex].medias.append(newMedia)
-        //                return newMedia
-        //            }
-        //        }
-        throw NetworkError.failedCreateMedia
+        guard let url = EndPoints.media.url else {
+            throw NetworkError.badUrl
+        }
+        
+        guard let accessToken = token?.accessToken else {
+            throw NetworkError.badAccessToken
+        }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = HTTPMethods.POST.rawValue
+        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
+        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+        
+        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
+                
+        do {
+            let (data, responce) = try await session.data(for: urlRequest)
+            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+                throw NetworkError.badResponse
+            }
+            do {
+                let media = try NetworkCoding.decoder.decode(Media.self, from: data)
+                return media
+            } catch {
+                throw NetworkError.failedToDecodeResponse
+            }
+        } catch {
+            throw NetworkError.failedCreateMedia
+        }
     }
     
     //=================================================================================
     /// Delete a media with a given id.
     /// - Parameter mediaId: Media id.
     func deleteMedia(withId mediaId: Media.ID) async throws {
-        //        try await Task.sleep(for: .seconds(delay))
-        //        for tripIndex in trips.indices {
-        //            for eventIndex in trips[tripIndex].events.indices {
-        //                for (mediaIndex, media) in trips[tripIndex].events[eventIndex].medias.enumerated() where media.id == mediaId {
-        //                    trips[tripIndex].events[eventIndex].medias.remove(at: mediaIndex)
-        //                    return
-        //                }
-        //            }
-        //        }
-        throw NetworkError.failedDeleteMedia
+        guard let url = EndPoints.media(id: mediaId) else {
+            throw NetworkError.badUrl
+        }
+        
+        guard let accessToken = token?.accessToken else {
+            throw NetworkError.badAccessToken
+        }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = HTTPMethods.DELETE.rawValue
+        urlRequest.addValue("*/*", forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+                
+        do {
+            let (_, responce) = try await session.data(for: urlRequest)
+            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+                throw NetworkError.badResponse
+            }
+        } catch {
+            throw NetworkError.failedDeleteMedia
+        }
     }
 }
 //=================================================================================
