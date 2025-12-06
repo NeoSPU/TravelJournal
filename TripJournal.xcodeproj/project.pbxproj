@@ -30,6 +30,7 @@
 		07BCBA8B2B5D65D200C6F687 /* JournalService+Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07BCBA8A2B5D65D200C6F687 /* JournalService+Environment.swift */; };
 		07BCBA8F2B5D7EC500C6F687 /* MediaCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07BCBA8E2B5D7EC500C6F687 /* MediaCarousel.swift */; };
 		07F6695D2B589A1E002F8D18 /* AddButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F6695C2B589A1E002F8D18 /* AddButton.swift */; };
+		1D3288BB2EE497C7006611D8 /* Models+Comparable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */; };
 		1D6468B12EE1AD07001A86D5 /* JournalService+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +69,7 @@
 		07BCBA8A2B5D65D200C6F687 /* JournalService+Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalService+Environment.swift"; sourceTree = "<group>"; };
 		07BCBA8E2B5D7EC500C6F687 /* MediaCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarousel.swift; sourceTree = "<group>"; };
 		07F6695C2B589A1E002F8D18 /* AddButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddButton.swift; sourceTree = "<group>"; };
+		1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models+Comparable.swift"; sourceTree = "<group>"; };
 		1D6468A52EE1AB80001A86D5 /* TripJournalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TripJournalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalService+Live.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -125,6 +127,8 @@
 				07AA89D82B5F256800405269 /* Models */,
 				07AA89D22B5F241200405269 /* Trips */,
 				07AA89D32B5F242100405269 /* Utils */,
+				1D3288B82EE49577006611D8 /* Helpers */,
+				1D3288B92EE4959C006611D8 /* Extensions */,
 			);
 			path = TripJournal;
 			sourceTree = "<group>";
@@ -197,6 +201,21 @@
 				0703FC792B493D5B0084DD8A /* LocationService.swift */,
 			);
 			path = LocationPicker;
+			sourceTree = "<group>";
+		};
+		1D3288B82EE49577006611D8 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		1D3288B92EE4959C006611D8 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -318,6 +337,7 @@
 				075A90F72B446A5C009A1DCB /* TripForm.swift in Sources */,
 				07BCBA872B5D656E00C6F687 /* JournalService+Mock.swift in Sources */,
 				0767E7102B573F6300993870 /* LocationSearchView.swift in Sources */,
+				1D3288BB2EE497C7006611D8 /* Models+Comparable.swift in Sources */,
 				075A90FB2B446A80009A1DCB /* EventCell.swift in Sources */,
 				07BCBA8F2B5D7EC500C6F687 /* MediaCarousel.swift in Sources */,
 				07F6695D2B589A1E002F8D18 /* AddButton.swift in Sources */,
