@@ -30,6 +30,12 @@
 		07BCBA8F2B5D7EC500C6F687 /* MediaCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07BCBA8E2B5D7EC500C6F687 /* MediaCarousel.swift */; };
 		07F6695D2B589A1E002F8D18 /* AddButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F6695C2B589A1E002F8D18 /* AddButton.swift */; };
 		1D3288BB2EE497C7006611D8 /* Models+Comparable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */; };
+		1D3288E12EE5D2B5006611D8 /* UTTypes+Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288E02EE5D2B0006611D8 /* UTTypes+Trip.swift */; };
+		1D3288E32EE5D402006611D8 /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288E22EE5D3FE006611D8 /* Trip.swift */; };
+		1D3288E62EE5D672006611D8 /* info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1D3288E52EE5D672006611D8 /* info.plist */; };
+		1D3288EE2EE5DB47006611D8 /* ShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288ED2EE5DB41006611D8 /* ShareService.swift */; };
+		1D3288F02EE5DB8F006611D8 /* ShareTripButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288EF2EE5DB8D006611D8 /* ShareTripButton.swift */; };
+		1D3288FA2EE5F98A006611D8 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288F92EE5F98A006611D8 /* DeepLinkRouter.swift */; };
 		1D6468B12EE1AD07001A86D5 /* JournalService+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +74,12 @@
 		07BCBA8E2B5D7EC500C6F687 /* MediaCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarousel.swift; sourceTree = "<group>"; };
 		07F6695C2B589A1E002F8D18 /* AddButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddButton.swift; sourceTree = "<group>"; };
 		1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models+Comparable.swift"; sourceTree = "<group>"; };
+		1D3288E02EE5D2B0006611D8 /* UTTypes+Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UTTypes+Trip.swift"; sourceTree = "<group>"; };
+		1D3288E22EE5D3FE006611D8 /* Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
+		1D3288E52EE5D672006611D8 /* info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
+		1D3288ED2EE5DB41006611D8 /* ShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareService.swift; sourceTree = "<group>"; };
+		1D3288EF2EE5DB8D006611D8 /* ShareTripButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareTripButton.swift; sourceTree = "<group>"; };
+		1D3288F92EE5F98A006611D8 /* DeepLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouter.swift; sourceTree = "<group>"; };
 		1D6468A52EE1AB80001A86D5 /* TripJournalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TripJournalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalService+Live.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -115,17 +127,18 @@
 		075A90E12B446996009A1DCB /* TripJournal */ = {
 			isa = PBXGroup;
 			children = (
+				1D3288E52EE5D672006611D8 /* info.plist */,
 				075A90E22B446996009A1DCB /* App.swift */,
 				075A90F02B4469C0009A1DCB /* RootView.swift */,
 				075A90E62B446997009A1DCB /* Assets.xcassets */,
 				07AA89D42B5F242B00405269 /* Auth */,
 				07AA89D52B5F243B00405269 /* Events */,
 				07BCBA8C2B5D65ED00C6F687 /* JournalService */,
+				1D3288EC2EE5DB13006611D8 /* ShareService */,
 				07BCBA8D2B5D666E00C6F687 /* LocationPicker */,
 				07AA89D82B5F256800405269 /* Models */,
 				07AA89D22B5F241200405269 /* Trips */,
 				07AA89D32B5F242100405269 /* Utils */,
-				1D3288B82EE49577006611D8 /* Helpers */,
 				1D3288B92EE4959C006611D8 /* Extensions */,
 			);
 			path = TripJournal;
@@ -173,6 +186,7 @@
 		07AA89D82B5F256800405269 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1D3288E22EE5D3FE006611D8 /* Trip.swift */,
 				0703FC712B457EF40084DD8A /* Models.swift */,
 				07AA89D62B5F251800405269 /* Requests.swift */,
 			);
@@ -200,19 +214,23 @@
 			path = LocationPicker;
 			sourceTree = "<group>";
 		};
-		1D3288B82EE49577006611D8 /* Helpers */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Helpers;
-			sourceTree = "<group>";
-		};
 		1D3288B92EE4959C006611D8 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				1D3288E02EE5D2B0006611D8 /* UTTypes+Trip.swift */,
 				1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		1D3288EC2EE5DB13006611D8 /* ShareService */ = {
+			isa = PBXGroup;
+			children = (
+				1D3288F92EE5F98A006611D8 /* DeepLinkRouter.swift */,
+				1D3288EF2EE5DB8D006611D8 /* ShareTripButton.swift */,
+				1D3288ED2EE5DB41006611D8 /* ShareService.swift */,
+			);
+			path = ShareService;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -301,6 +319,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1D3288E62EE5D672006611D8 /* info.plist in Resources */,
 				075A90E72B446997009A1DCB /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -319,11 +338,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1D3288FA2EE5F98A006611D8 /* DeepLinkRouter.swift in Sources */,
 				07BCBA7A2B5B256500C6F687 /* MediaGallery.swift in Sources */,
 				0703FC7A2B493D5B0084DD8A /* LocationService.swift in Sources */,
 				0703FC722B457EF40084DD8A /* Models.swift in Sources */,
 				075A91012B446B17009A1DCB /* AuthView.swift in Sources */,
 				0703FC742B4583B80084DD8A /* JournalService.swift in Sources */,
+				1D3288E32EE5D402006611D8 /* Trip.swift in Sources */,
 				07AA89D72B5F251800405269 /* Requests.swift in Sources */,
 				075A90E32B446996009A1DCB /* App.swift in Sources */,
 				075A90FD2B446AA9009A1DCB /* Utils.swift in Sources */,
@@ -332,12 +353,15 @@
 				075A90F12B4469C0009A1DCB /* RootView.swift in Sources */,
 				075A90F72B446A5C009A1DCB /* TripForm.swift in Sources */,
 				07BCBA872B5D656E00C6F687 /* JournalService+Mock.swift in Sources */,
+				1D3288E12EE5D2B5006611D8 /* UTTypes+Trip.swift in Sources */,
 				0767E7102B573F6300993870 /* LocationSearchView.swift in Sources */,
 				1D3288BB2EE497C7006611D8 /* Models+Comparable.swift in Sources */,
 				075A90FB2B446A80009A1DCB /* EventCell.swift in Sources */,
 				07BCBA8F2B5D7EC500C6F687 /* MediaCarousel.swift in Sources */,
 				07F6695D2B589A1E002F8D18 /* AddButton.swift in Sources */,
+				1D3288F02EE5DB8F006611D8 /* ShareTripButton.swift in Sources */,
 				075A90F52B446A41009A1DCB /* TripDetails.swift in Sources */,
+				1D3288EE2EE5DB47006611D8 /* ShareService.swift in Sources */,
 				1D6468B12EE1AD07001A86D5 /* JournalService+Live.swift in Sources */,
 				075A90F32B446A18009A1DCB /* TripList.swift in Sources */,
 				07BCBA8B2B5D65D200C6F687 /* JournalService+Environment.swift in Sources */,
@@ -499,6 +523,7 @@
 				DEVELOPMENT_TEAM = 63RCSC6XFL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TripJournal/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show places around you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -535,6 +560,7 @@
 				DEVELOPMENT_TEAM = 63RCSC6XFL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TripJournal/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show places around you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

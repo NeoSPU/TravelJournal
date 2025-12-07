@@ -11,8 +11,10 @@ struct TripList: View {
     @State private var isLogoutConfirmationDialogPresented = false
     @State private var isSelecting = false
     @State private var selectedTripIDs: Set<Trip.ID> = []
+    @State private var prefillTrip: Trip? = nil
 
     @Environment(\.journalService) private var journalService
+    @EnvironmentObject private var deepLinkRouter: DeepLinkRouter
 
     // MARK: - Body
 
@@ -22,6 +24,12 @@ struct TripList: View {
                 .navigationTitle("Trips")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar(content: toolbar)
+                .onChange(of: deepLinkRouter.tripToOpen) { _, newValue in
+                    guard let trip = newValue else { return }
+                    prefillTrip = trip
+                    tripFormMode = .add
+                    deepLinkRouter.clear()
+                }
                 .onAppear {
                     addAction = { tripFormMode = .add }
                 }
@@ -33,9 +41,14 @@ struct TripList: View {
                     }
                 }
                 .sheet(item: $tripFormMode) { mode in
-                    TripForm(mode: mode) {
-                        Task {
-                            await fetchTrips()
+                    if let trip = prefillTrip, case .add = mode {
+                        PrefilledTripAddSheet(trip: trip) {
+                            prefillTrip = nil
+                            Task { await fetchTrips() }
+                        }
+                    } else {
+                        TripForm(mode: mode) {
+                            Task { await fetchTrips() }
                         }
                     }
                 }
@@ -164,8 +177,10 @@ struct TripList: View {
                 .swipeActions(edge: .leading, allowsFullSwipe: false) {
                     Button("Edit", systemImage: "pencil") { edit(trip) }
                         .tint(.accent)
-                    Button("Share", systemImage: "square.and.arrow.up") { share(trip) }
+                    ShareTripButton(trip: trip)
                         .tint(.accent)
+//                    Button("Share", systemImage: "square.and.arrow.up") { share(trip) }
+//                        .tint(.accent)
                 }
                 .swipeActions(edge: .trailing) {
                     Button("Delete", systemImage: "trash") { delete(trip) }
@@ -257,6 +272,68 @@ struct TripList: View {
             var presenter = root
             while let presented = presenter.presentedViewController { presenter = presented }
             presenter.present(activityVC, animated: true)
+        }
+    }
+}
+
+struct PrefilledTripAddSheet: View {
+    let trip: Trip
+    let onSaved: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.journalService) private var journalService
+
+    @State private var name: String = ""
+    @State private var startDate: Date = .now
+    @State private var endDate: Date = .now
+    @State private var isLoading = false
+    @State private var error: Error?
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Name") {
+                    TextField("Name", text: $name, prompt: Text("Amsterdam Adventure"))
+                }
+                Section("Dates") {
+                    DatePicker("Start date", selection: $startDate, displayedComponents: .date)
+                    DatePicker("End date", selection: $endDate, displayedComponents: .date)
+                }
+            }
+            .navigationTitle("Add Trip")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Dismiss", systemImage: "xmark") { dismiss() }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Save") { Task { await save() } }
+                }
+            }
+            .alert(error: $error)
+            .loadingOverlay(isLoading)
+            .onAppear {
+                if name.isEmpty { name = trip.name }
+                if startDate == .now { startDate = trip.startDate }
+                if endDate == .now { endDate = trip.endDate }
+            }
+        }
+    }
+
+    private func save() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { throw TripForm.ValidationError.emptyName }
+            if startDate > endDate { throw TripForm.ValidationError.invalidDates }
+            let request = TripCreate(name: name, startDate: startDate, endDate: endDate)
+            try await journalService.createTrip(with: request)
+            await MainActor.run {
+                onSaved()
+                dismiss()
+            }
+        } catch {
+            await MainActor.run { self.error = error }
         }
     }
 }
