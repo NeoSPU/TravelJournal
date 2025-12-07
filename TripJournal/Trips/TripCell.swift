@@ -3,6 +3,7 @@ import SwiftUI
 struct TripCell: View {
     let trip: Trip
     let edit: () -> Void
+    let share: () -> Void
     let delete: () -> Void
 
     // MARK: - Body
@@ -19,6 +20,8 @@ struct TripCell: View {
         .swipeActions(edge: .leading, allowsFullSwipe: false) {
             Button("Edit", systemImage: "pencil", action: edit)
                 .tint(.accent)
+            Button("Share", systemImage: "square.and.arrow.up", action: share)
+                .tint(.accent)
         }
         .swipeActions(edge: .trailing) {
             Button("Delete", systemImage: "trash", action: delete)
@@ -26,6 +29,7 @@ struct TripCell: View {
         }
         .contextMenu {
             Button("Edit", systemImage: "pencil", action: edit)
+            Button("Share", systemImage: "square.and.arrow.up", action: share)
             Button("Delete", systemImage: "trash", role: .destructive, action: delete)
         }
     }

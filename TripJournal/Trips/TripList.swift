@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct TripList: View {
     @Binding var addAction: () -> Void
@@ -8,6 +9,8 @@ struct TripList: View {
     @State private var error: Error?
     @State private var tripFormMode: TripForm.Mode?
     @State private var isLogoutConfirmationDialogPresented = false
+    @State private var isSelecting = false
+    @State private var selectedTripIDs: Set<Trip.ID> = []
 
     @Environment(\.journalService) private var journalService
 
@@ -65,6 +68,44 @@ struct TripList: View {
                 isLogoutConfirmationDialogPresented = true
             }
         }
+        ToolbarItem(placement: .primaryAction) {
+            if isSelecting {
+                Button("Cancel") {
+                    isSelecting = false
+                    selectedTripIDs.removeAll()
+                }
+            } else {
+                Button("Select") {
+                    isSelecting = true
+                }
+            }
+        }
+        if isSelecting {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    shareSelectedTrips()
+                    isSelecting = false
+                    selectedTripIDs.removeAll()
+                } label: {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                .disabled(selectedTripIDs.isEmpty)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(role: .destructive) {
+                    Task {
+                        for id in selectedTripIDs {
+                            await deleteTrip(withId: id)
+                        }
+                        selectedTripIDs.removeAll()
+                        isSelecting = false
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+                .disabled(selectedTripIDs.isEmpty)
+            }
+        }
     }
 
     @ViewBuilder
@@ -109,21 +150,48 @@ struct TripList: View {
     }
 
     private var listView: some View {
-        List {
+        List(selection: $selectedTripIDs) {
             ForEach(trips) { trip in
-                TripCell(
-                    trip: trip,
-                    edit: {
-                        tripFormMode = .edit(trip)
-                    },
-                    delete: {
-                        Task {
-                            await deleteTrip(withId: trip.id)
+                    TripCell(
+                        trip: trip,
+                        edit: {
+                            tripFormMode = .edit(trip)
+                        },
+                        share: {
+                            Task {
+                                shareSelected(trip: trip)
+                            }
+                        },
+                        delete: {
+                            Task {
+                                await deleteTrip(withId: trip.id)
+                            }
+                        }
+                    )
+                    .contentShape(Rectangle())
+                
+                .simultaneousGesture(TapGesture().onEnded {
+                    // Если включён режим выбора — перехватываем тап и не пускаем в навигацию
+                    if isSelecting {
+                        if selectedTripIDs.contains(trip.id) {
+                            selectedTripIDs.remove(trip.id)
+                        } else {
+                            selectedTripIDs.insert(trip.id)
                         }
                     }
-                )
+                })
+                .onTapGesture {
+                    if isSelecting {
+                        if selectedTripIDs.contains(trip.id) {
+                            selectedTripIDs.remove(trip.id)
+                        } else {
+                            selectedTripIDs.insert(trip.id)
+                        }
+                    }
+                }
             }
         }
+        .environment(\.editMode, .constant(isSelecting ? EditMode.active : EditMode.inactive))
         .refreshable {
             await fetchTrips()
         }
@@ -153,5 +221,41 @@ struct TripList: View {
             self.error = error
         }
         isLoading = false
+    }
+    
+    // MARK: - Sharing
+    
+    private func shareSelectedTrips() {
+        let selectedTrips = trips.filter { selectedTripIDs.contains($0.id) }
+        guard !selectedTrips.isEmpty else { return }
+
+        let summary = selectedTrips
+            .map { String(describing: $0) }
+            .joined(separator: "\n\n")
+
+        let activityVC = UIActivityViewController(activityItems: [summary], applicationActivities: nil)
+
+        // Present from the top-most view controller
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first,
+           let root = window.rootViewController {
+            var presenter = root
+            while let presented = presenter.presentedViewController { presenter = presented }
+            presenter.present(activityVC, animated: true)
+        }
+    }
+    
+    private func shareSelected(trip: Trip) {
+        let summary = String(describing: trip)
+        let activityVC = UIActivityViewController(activityItems: [summary], applicationActivities: nil)
+
+        // Present from the top-most view controller
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first,
+           let root = window.rootViewController {
+            var presenter = root
+            while let presented = presenter.presentedViewController { presenter = presented }
+            presenter.present(activityVC, animated: true)
+        }
     }
 }

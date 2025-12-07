@@ -13,7 +13,7 @@ class JournalServiceLive: JournalService {
     private let session: URLSession
     private let delay: TimeInterval
     @Published private var token: Token?
-
+    
     var isAuthenticated: AnyPublisher<Bool, Never> {
         $token
             .map { $0 != nil }
@@ -25,6 +25,59 @@ class JournalServiceLive: JournalService {
         self.session = session
     }
     
+    //=================================================================================
+    // MARK: - Request Builder
+    //=================================================================================
+    
+    private protocol RequestConfigurationStrategy {
+        func apply(to request: inout URLRequest) throws
+    }
+    
+    private struct AcceptHeaderStrategy: RequestConfigurationStrategy {
+        let value: String
+        func apply(to request: inout URLRequest) throws {
+            request.addValue(value, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        }
+    }
+    
+    private struct ContentTypeHeaderStrategy: RequestConfigurationStrategy {
+        let value: String
+        func apply(to request: inout URLRequest) throws {
+            request.addValue(value, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
+        }
+    }
+    
+    private struct AuthorizationHeaderStrategy: RequestConfigurationStrategy {
+        let tokenProvider: () -> String?
+        func apply(to request: inout URLRequest) throws {
+            guard let accessToken = tokenProvider() else { throw NetworkError.badAccessToken }
+            request.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+        }
+    }
+    
+    private struct BodyStrategy: RequestConfigurationStrategy {
+        let data: Data
+        func apply(to request: inout URLRequest) throws {
+            request.httpBody = data
+        }
+    }
+    
+    private func makeRequest(
+        url: URL,
+        method: HTTPMethods,
+        strategies: [RequestConfigurationStrategy]
+    ) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        for strategy in strategies {
+            try strategy.apply(to: &request)
+        }
+        return request
+    }
+    
+    
+    //=================================================================================
+    // MARK: - API Methods
     //=================================================================================
     /// Create a new account.
     /// - Parameters:
@@ -39,17 +92,17 @@ class JournalServiceLive: JournalService {
         
         let registerRequest = LoginRequest(username: username, password: password)
         
-        var request = URLRequest(url: url)
-        
-        request.httpMethod = HTTPMethods.POST.rawValue
-        
-        // Add necessary HTTP headers
-        request.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        request.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
+        let request = try makeRequest(
+            url: url,
+            method: .POST,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.JSON.rawValue),
+                BodyStrategy(data: try JSONEncoder().encode(registerRequest))
+            ]
+        )
         
         do {
-            request.httpBody = try JSONEncoder().encode(registerRequest)
-            
             let (data, response) = try await session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
@@ -84,16 +137,15 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        var request = URLRequest(url: url)
-        
-        request.httpMethod = HTTPMethods.POST.rawValue
-        
-        // Add necessary HTTP headers
-        request.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        request.addValue(MIMEType.form.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        
-        let loginData = "grant_type=&username=\(username)&password=\(password)"
-        request.httpBody = loginData.data(using: .utf8)
+        let request = try makeRequest(
+            url: url,
+            method: .POST,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.form.rawValue),
+                BodyStrategy(data: ("grant_type=&username=\(username)&password=\(password)").data(using: .utf8)!)
+            ]
+        )
         
         do {
             let (data, response) = try await session.data(for: request)
@@ -140,17 +192,16 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badResponse
-        }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.POST.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-        
-        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .POST,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken }),
+                BodyStrategy(data: try NetworkCoding.encoder.encode(request))
+            ]
+        )
         
         do {
             let (data, response) = try await session.data(for: urlRequest)
@@ -177,18 +228,18 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.GET.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .GET,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken })
+            ]
+        )
         
         do {
-            let (data, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
             do {
@@ -213,18 +264,18 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.GET.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .GET,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken })
+            ]
+        )
         
         do {
-            let (data, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
             do {
@@ -249,21 +300,20 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.PUT.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-        
-        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .PUT,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken }),
+                BodyStrategy(data: try NetworkCoding.encoder.encode(request))
+            ]
+        )
         
         do {
-            let (data, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
             do {
@@ -286,18 +336,18 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .DELETE,
+            strategies: [
+                AcceptHeaderStrategy(value: "*/*"),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken })
+            ]
+        )
         
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.DELETE.rawValue
-        urlRequest.addValue("*/*", forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-                
         do {
-            let (_, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (_, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
         } catch {
@@ -316,21 +366,20 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .POST,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken }),
+                BodyStrategy(data: try NetworkCoding.encoder.encode(request))
+            ]
+        )
         
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.POST.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-        
-        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
-                
         do {
-            let (data, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
             do {
@@ -354,21 +403,20 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.PUT.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-        
-        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .PUT,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken }),
+                BodyStrategy(data: try NetworkCoding.encoder.encode(request))
+            ]
+        )
         
         do {
-            let (data, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
             do {
@@ -391,18 +439,18 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .DELETE,
+            strategies: [
+                AcceptHeaderStrategy(value: "*/*"),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken })
+            ]
+        )
         
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.DELETE.rawValue
-        urlRequest.addValue("*/*", forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-                
         do {
-            let (_, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (_, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
         } catch {
@@ -420,21 +468,20 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .POST,
+            strategies: [
+                AcceptHeaderStrategy(value: MIMEType.JSON.rawValue),
+                ContentTypeHeaderStrategy(value: MIMEType.JSON.rawValue),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken }),
+                BodyStrategy(data: try NetworkCoding.encoder.encode(request))
+            ]
+        )
         
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.POST.rawValue
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue(MIMEType.JSON.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-        
-        urlRequest.httpBody = try NetworkCoding.encoder.encode(request)
-                
         do {
-            let (data, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
             do {
@@ -456,18 +503,18 @@ class JournalServiceLive: JournalService {
             throw NetworkError.badUrl
         }
         
-        guard let accessToken = token?.accessToken else {
-            throw NetworkError.badAccessToken
-        }
+        let urlRequest = try makeRequest(
+            url: url,
+            method: .DELETE,
+            strategies: [
+                AcceptHeaderStrategy(value: "*/*"),
+                AuthorizationHeaderStrategy(tokenProvider: { self.token?.accessToken })
+            ]
+        )
         
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethods.DELETE.rawValue
-        urlRequest.addValue("*/*", forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-        urlRequest.addValue("Bearer \(accessToken)", forHTTPHeaderField: HTTPHeaders.authorization.rawValue)
-                
         do {
-            let (_, responce) = try await session.data(for: urlRequest)
-            guard let httpResponce = responce as? HTTPURLResponse, (200...299).contains(httpResponce.statusCode) else {
+            let (_, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 throw NetworkError.badResponse
             }
         } catch {
@@ -513,7 +560,8 @@ enum NetworkError: Error {
 }
 
 enum EndPoints {
-    static let base = "http://localhost:8000/"
+    //    static let base = "http://localhost:8000/"
+    static let base = "http://192.168.1.167:8000/"
     
     case register
     case login
