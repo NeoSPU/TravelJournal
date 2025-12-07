@@ -152,42 +152,29 @@ struct TripList: View {
     private var listView: some View {
         List(selection: $selectedTripIDs) {
             ForEach(trips) { trip in
+                NavigationLink(value: trip) {
                     TripCell(
                         trip: trip,
-                        edit: {
-                            tripFormMode = .edit(trip)
-                        },
-                        share: {
-                            Task {
-                                shareSelected(trip: trip)
-                            }
-                        },
-                        delete: {
-                            Task {
-                                await deleteTrip(withId: trip.id)
-                            }
-                        }
+                        edit: { edit(trip) },
+                        share: { share(trip) },
+                        delete: { delete(trip) }
                     )
-                    .contentShape(Rectangle())
-                
-                .simultaneousGesture(TapGesture().onEnded {
-                    // Если включён режим выбора — перехватываем тап и не пускаем в навигацию
-                    if isSelecting {
-                        if selectedTripIDs.contains(trip.id) {
-                            selectedTripIDs.remove(trip.id)
-                        } else {
-                            selectedTripIDs.insert(trip.id)
-                        }
-                    }
-                })
-                .onTapGesture {
-                    if isSelecting {
-                        if selectedTripIDs.contains(trip.id) {
-                            selectedTripIDs.remove(trip.id)
-                        } else {
-                            selectedTripIDs.insert(trip.id)
-                        }
-                    }
+                }
+                .buttonStyle(.plain)
+                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                    Button("Edit", systemImage: "pencil") { edit(trip) }
+                        .tint(.accent)
+                    Button("Share", systemImage: "square.and.arrow.up") { share(trip) }
+                        .tint(.accent)
+                }
+                .swipeActions(edge: .trailing) {
+                    Button("Delete", systemImage: "trash") { delete(trip) }
+                        .tint(.red)
+                }
+                .contextMenu {
+                    Button("Edit", systemImage: "pencil") { edit(trip) }
+                    Button("Share", systemImage: "square.and.arrow.up") { share(trip) }
+                    Button("Delete", systemImage: "trash", role: .destructive) { delete(trip) }
                 }
             }
         }
@@ -195,6 +182,20 @@ struct TripList: View {
         .refreshable {
             await fetchTrips()
         }
+    }
+    
+    // MARK: - NavigationLink Methods
+    
+    private func edit(_ trip: Trip) {
+        tripFormMode = .edit(trip)
+    }
+
+    private func share(_ trip: Trip) {
+        Task { shareSelected(trip: trip) }
+    }
+
+    private func delete(_ trip: Trip) {
+        Task { await deleteTrip(withId: trip.id) }
     }
 
     // MARK: - Networking
