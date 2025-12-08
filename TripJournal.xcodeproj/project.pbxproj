@@ -35,7 +35,6 @@
 		1D3288EE2EE5DB47006611D8 /* ShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288ED2EE5DB41006611D8 /* ShareService.swift */; };
 		1D3288F02EE5DB8F006611D8 /* ShareTripButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288EF2EE5DB8D006611D8 /* ShareTripButton.swift */; };
 		1D3288FA2EE5F98A006611D8 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288F92EE5F98A006611D8 /* DeepLinkRouter.swift */; };
-		1D591BD82EE70F2D00AFE8CF /* info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1D591BD72EE70F2D00AFE8CF /* info.plist */; };
 		1D6468B12EE1AD07001A86D5 /* JournalService+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */; };
 /* End PBXBuildFile section */
 
@@ -319,7 +318,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1D591BD82EE70F2D00AFE8CF /* info.plist in Resources */,
 				075A90E72B446997009A1DCB /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
