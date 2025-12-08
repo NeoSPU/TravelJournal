@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 extension UTType {
     static var tripJSON: UTType {
-        UTType(importedAs: "com.rick.tripjournal.json",
+        UTType(importedAs: "ai.learnto.TripJournal.json",
                conformingTo: .json)
     }
 }

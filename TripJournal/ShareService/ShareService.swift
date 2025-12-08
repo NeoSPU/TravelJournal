@@ -11,8 +11,19 @@ import Foundation
 struct ShareService {
     
     func makeTripShareURL(trip: Trip) -> URL? {
-        guard let encoded = try? trip.encodedForURL() else { return nil }
-        return URL(string: "tripjournal://trip?payload=\(encoded)")
-    }
+
+            guard let encodedPayload = try? trip.encodedForURL() else { return nil }
+
+            var components = URLComponents()
+            components.scheme = "tripjournal"
+            components.host = "open"
+            components.path = "/trip"
+            components.queryItems = [
+                URLQueryItem(name: "v", value: "1"),
+                URLQueryItem(name: "payload", value: encodedPayload)
+            ]
+
+            return components.url
+        }
     
 }

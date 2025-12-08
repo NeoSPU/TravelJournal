@@ -32,10 +32,10 @@
 		1D3288BB2EE497C7006611D8 /* Models+Comparable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */; };
 		1D3288E12EE5D2B5006611D8 /* UTTypes+Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288E02EE5D2B0006611D8 /* UTTypes+Trip.swift */; };
 		1D3288E32EE5D402006611D8 /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288E22EE5D3FE006611D8 /* Trip.swift */; };
-		1D3288E62EE5D672006611D8 /* info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1D3288E52EE5D672006611D8 /* info.plist */; };
 		1D3288EE2EE5DB47006611D8 /* ShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288ED2EE5DB41006611D8 /* ShareService.swift */; };
 		1D3288F02EE5DB8F006611D8 /* ShareTripButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288EF2EE5DB8D006611D8 /* ShareTripButton.swift */; };
 		1D3288FA2EE5F98A006611D8 /* DeepLinkRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3288F92EE5F98A006611D8 /* DeepLinkRouter.swift */; };
+		1D591BD82EE70F2D00AFE8CF /* info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1D591BD72EE70F2D00AFE8CF /* info.plist */; };
 		1D6468B12EE1AD07001A86D5 /* JournalService+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */; };
 /* End PBXBuildFile section */
 
@@ -76,10 +76,10 @@
 		1D3288BA2EE497C7006611D8 /* Models+Comparable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models+Comparable.swift"; sourceTree = "<group>"; };
 		1D3288E02EE5D2B0006611D8 /* UTTypes+Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UTTypes+Trip.swift"; sourceTree = "<group>"; };
 		1D3288E22EE5D3FE006611D8 /* Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
-		1D3288E52EE5D672006611D8 /* info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
 		1D3288ED2EE5DB41006611D8 /* ShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareService.swift; sourceTree = "<group>"; };
 		1D3288EF2EE5DB8D006611D8 /* ShareTripButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareTripButton.swift; sourceTree = "<group>"; };
 		1D3288F92EE5F98A006611D8 /* DeepLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRouter.swift; sourceTree = "<group>"; };
+		1D591BD72EE70F2D00AFE8CF /* info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
 		1D6468A52EE1AB80001A86D5 /* TripJournalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TripJournalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D6468B02EE1AD04001A86D5 /* JournalService+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalService+Live.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -127,7 +127,6 @@
 		075A90E12B446996009A1DCB /* TripJournal */ = {
 			isa = PBXGroup;
 			children = (
-				1D3288E52EE5D672006611D8 /* info.plist */,
 				075A90E22B446996009A1DCB /* App.swift */,
 				075A90F02B4469C0009A1DCB /* RootView.swift */,
 				075A90E62B446997009A1DCB /* Assets.xcassets */,
@@ -140,6 +139,7 @@
 				07AA89D22B5F241200405269 /* Trips */,
 				07AA89D32B5F242100405269 /* Utils */,
 				1D3288B92EE4959C006611D8 /* Extensions */,
+				1D591BD72EE70F2D00AFE8CF /* info.plist */,
 			);
 			path = TripJournal;
 			sourceTree = "<group>";
@@ -319,7 +319,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1D3288E62EE5D672006611D8 /* info.plist in Resources */,
+				1D591BD82EE70F2D00AFE8CF /* info.plist in Resources */,
 				075A90E72B446997009A1DCB /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -525,7 +525,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TripJournal/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show places around you";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -562,7 +561,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TripJournal/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to show places around you";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;

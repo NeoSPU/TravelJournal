@@ -19,7 +19,7 @@ struct TripJournalApp: App {
     }
     
     private func handleIncomingURL(_ url: URL) async {
-        guard url.scheme == "myapp",
+        guard url.scheme == "tripjournal",
               url.host == "trip",
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let payload = components.queryItems?.first(where: { $0.name == "payload" })?.value

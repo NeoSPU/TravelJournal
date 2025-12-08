@@ -46,6 +46,7 @@ extension Trip: Transferable {
 }
 
 extension Trip {
+        
     func encodedForURL() throws -> String {
         let data = try JSONEncoder().encode(self)
         return data.base64EncodedString()
